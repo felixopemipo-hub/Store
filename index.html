@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Sign Up | Supabase Auth</title>
+  <!-- Google Fonts & simple reset -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', 'Inter', 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    /* main card */
+    .card {
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(0px);
+      border-radius: 2rem;
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      max-width: 460px;
+      padding: 2rem 1.8rem 2.2rem;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.01);
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      background: linear-gradient(120deg, #0f172a, #2d3a5e);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.3px;
+    }
+
+    .subhead {
+      color: #475569;
+      font-size: 0.9rem;
+      margin-bottom: 1.8rem;
+      border-left: 3px solid #3b82f6;
+      padding-left: 0.75rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.4rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      font-size: 0.85rem;
+      color: #1e293b;
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.2px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      font-size: 0.95rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 1.2rem;
+      background-color: #fefefe;
+      transition: all 0.2s;
+      outline: none;
+      color: #0f172a;
+    }
+
+    input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: #64748b;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+
+    .password-toggle:hover {
+      color: #3b82f6;
+    }
+
+    .btn-signup {
+      background: linear-gradient(100deg, #2563eb, #3b82f6);
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.85rem;
+      width: 100%;
+      border: none;
+      border-radius: 2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
+      margin-top: 0.5rem;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-signup:hover {
+      background: linear-gradient(100deg, #1d4ed8, #2563eb);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 20px -8px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-signup:active {
+      transform: translateY(1px);
+    }
+
+    .btn-signup:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .message {
+      margin-top: 1.2rem;
+      padding: 0.75rem 1rem;
+      border-radius: 1.2rem;
+      font-size: 0.85rem;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+
+    .message.error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      border-left: 4px solid #ef4444;
+      display: block;
+    }
+
+    .message.success {
+      background-color: #dcfce7;
+      color: #15803d;
+      border-left: 4px solid #22c55e;
+      display: block;
+    }
+
+    .info-note {
+      background: #f1f5f9;
+      margin-top: 1.8rem;
+      padding: 0.9rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      color: #334155;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .info-note code {
+      background: #e2e8f0;
+      padding: 0.2rem 0.4rem;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    .footer-text {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #5b6e8c;
+    }
+
+    .footer-text a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    hr {
+      margin: 1rem 0;
+      border: none;
+      height: 1px;
+      background: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Create account</h1>
+  <div class="subhead">Join with secure Supabase authentication</div>
+
+  <form id="signupForm">
+    <div class="form-group">
+      <label>📧 Email address</label>
+      <input type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+    </div>
+
+    <div class="form-group">
+      <label>🔒 Password</label>
+      <div class="input-wrapper">
+        <input type="password" id="password" placeholder="••••••••" required autocomplete="new-password">
+        <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">👁️</button>
+      </div>
+      <div style="font-size: 0.7rem; color: #5b6e8c; margin-top: 5px;">min. 6 characters recommended</div>
+    </div>
+
+    <div class="form-group">
+      <label>✔️ Confirm password</label>
+      <div class="input-wrapper">
+        <input type="password" id="confirmPassword" placeholder="confirm password" required autocomplete="off">
+        <button type="button" class="password-toggle" id="toggleConfirmPassword" aria-label="Show password">👁️</button>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-signup" id="submitBtn">Sign up →</button>
+    
+    <div id="messageBox" class="message"></div>
+  </form>
+
+  <div class="info-note">
+    🔐 <strong>Supabase secure storage</strong><br>
+    Credentials are stored in Supabase Auth (hashed passwords, email).<br>
+    Replace <code>SUPABASE_URL</code> & <code>SUPABASE_ANON_KEY</code> with your project keys.
+  </div>
+
+  <div class="footer-text">
+    Already have an account? <a href="#" id="mockLoginLink">Log in</a> (demo link)
+  </div>
+  <hr>
+  <div style="font-size: 0.7rem; text-align: center; color: #6c7a91;">⚡ Signup uses Supabase Auth — email confirmation settings depend on your project</div>
+</div>
+
+<!-- Supabase JS library (v2) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // ======================= ⚠️ IMPORTANT: Replace with your Supabase credentials =======================
+  // Get your URL and anon key from: https://app.supabase.com/project/_/settings/api
+  // They are safe to use in frontend (anon key), but restrict RLS policies in your database.
+  const SUPABASE_URL = "https://vegouziisxckphottoan.supabase.co";      // <-- REPLACE with your Supabase URL
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ291emlpc3hja3Bob3R0b2FuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTAyOTksImV4cCI6MjA5NDM2NjI5OX0.sjuqVEvVIXYdJ8X1RwMyS5Vo60YCGPtQKcTz0NoOCvM";               // <-- REPLACE with your anon public key
+  
+  // ------------------- Validation & DOM elements ------------------
+  const form = document.getElementById('signupForm');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const confirmInput = document.getElementById('confirmPassword');
+  const submitBtn = document.getElementById('submitBtn');
+  const messageBox = document.getElementById('messageBox');
+  
+  // Toggle password visibility
+  const togglePassword = document.getElementById('togglePassword');
+  const toggleConfirm = document.getElementById('toggleConfirmPassword');
+  
+  // Helper: show message (type: 'error' or 'success')
+  function showMessage(msg, type) {
+    messageBox.textContent = msg;
+    messageBox.className = `message ${type}`;
+    // Auto hide after 5 seconds for success, but keep error visible unless form interaction clears? fine.
+    if (type === 'success') {
+      setTimeout(() => {
+        if (messageBox.className.includes('success')) {
+          messageBox.style.display = 'none';
+          messageBox.className = 'message';
+        }
+      }, 5000);
+    } else {
+      // ensure error stays but user can retry
+      setTimeout(() => {
+        // Only auto-clear if error is generic but better to keep, no auto clear for error except on new submit
+      }, 6000);
+    }
+  }
+  
+  function clearMessage() {
+    messageBox.textContent = '';
+    messageBox.className = 'message';
+  }
+  
+  // Validate email format
+  function isValidEmail(email) {
+    return /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/.test(email);
+  }
+  
+  // password strength check (optional, min length 6)
+  function isStrongEnough(pwd) {
+    return pwd.length >= 6;
+  }
+  
+  // toggle password visibility
+  function setupToggle(toggleBtn, targetInput) {
+    toggleBtn.addEventListener('click', () => {
+      const type = targetInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      targetInput.setAttribute('type', type);
+      toggleBtn.textContent = type === 'password' ? '👁️' : '🙈';
+    });
+  }
+  setupToggle(togglePassword, passwordInput);
+  setupToggle(toggleConfirm, confirmInput);
+  
+  // ------------------------------------------------------------------
+  // Initialize Supabase client (will check for valid URL/key)
+  let supabase = null;
+  let initError = false;
+  
+  try {
+    if (SUPABASE_URL === "https://your-project.supabase.co" || SUPABASE_ANON_KEY === "your-anon-key-here") {
+      console.warn("Placeholder Supabase credentials detected.");
+      // We will show error on form submit but still allow client to be created with placeholder?
+      // We'll create but it will fail; better to mark initError = true
+      initError = true;
+    } else {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // optional test ping: silently check
+    }
+  } catch (err) {
+    console.error("Supabase init error:", err);
+    initError = true;
+  }
+  
+  // handle signup logic
+  async function handleSignup(event) {
+    event.preventDefault();
+    clearMessage();
+    
+    // 1. Show loading state
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Creating account ...";
+    
+    // 2. Get values
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirm = confirmInput.value;
+    
+    // 3. Basic validations
+    if (!email) {
+      showMessage("❌ Please enter your email address.", "error");
+      resetButton();
+      return;
+    }
+    if (!isValidEmail(email)) {
+      showMessage("📧 Invalid email format. Use something like name@example.com", "error");
+      resetButton();
+      return;
+    }
+    if (!password) {
+      showMessage("🔒 Password cannot be empty.", "error");
+      resetButton();
+      return;
+    }
+    if (!isStrongEnough(password)) {
+      showMessage("⚠️ Password must be at least 6 characters long.", "error");
+      resetButton();
+      return;
+    }
+    if (password !== confirm) {
+      showMessage("❌ Passwords do not match. Please re-enter.", "error");
+      resetButton();
+      return;
+    }
+    
+    // 4. Check Supabase init
+    if (initError || !supabase) {
+      showMessage("🚫 Supabase client not configured. Please replace SUPABASE_URL and SUPABASE_ANON_KEY in the script with your actual project credentials (from Supabase dashboard).", "error");
+      resetButton();
+      return;
+    }
+    
+    // 5. Try sign up via Supabase Auth
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          // Optional: you can add user metadata (e.g., full_name) if you need, but not required.
+          data: {
+            // you can store any extra info: signup_via: "web_demo"
+          }
+        }
+      });
+      
+      if (error) {
+        // handle different error messages
+        let errorMsg = error.message;
+        if (error.message.includes("User already registered") || error.message.includes("already been registered")) {
+          errorMsg = "⚠️ This email is already registered. Try logging in instead.";
+        } else if (error.message.includes("Password should be at least")) {
+          errorMsg = "🔐 Password too weak. Use at least 6 characters.";
+        } else if (error.message.includes("Invalid email")) {
+          errorMsg = "📧 Please provide a valid email address.";
+        }
+        showMessage(`Sign up failed: ${errorMsg}`, "error");
+        resetButton();
+        return;
+      }
+      
+      // success: data.user contains user info
+      if (data?.user) {
+        // Check if email confirmation is required: if user's email_confirmed_at is null
+        const emailConfirmed = data.user.email_confirmed_at ? true : false;
+        let successMsg = `✨ Account created for ${email}! `;
+        if (!emailConfirmed) {
+          successMsg += `Please check your inbox and confirm your email address before signing in. (Confirmation required by your Supabase settings)`;
+        } else {
+          successMsg += `You can now log in with your credentials.`;
+        }
+        showMessage(successMsg, "success");
+        // Optionally reset form for better UX
+        form.reset();
+        // Also clear any sensitive fields
+        passwordInput.value = '';
+        confirmInput.value = '';
+      } else {
+        showMessage("✅ Signed up successfully! You can now log in (if no confirmation needed).", "success");
+        form.reset();
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      showMessage("⚠️ Network error or Supabase unreachable. Check your keys and internet connection.", "error");
+    } finally {
+      resetButton();
+    }
+  }
+  
+  function resetButton() {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Sign up →";
+  }
+  
+  // Attach event
+  form.addEventListener('submit', handleSignup);
+  
+  // optional: demo login link (just alert, as it's signup page only)
+  const loginLink = document.getElementById('mockLoginLink');
+  if (loginLink) {
+    loginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showMessage("🔄 This is a signup demo page. After signup, you can log in using your app's login page or redirect.", "success");
+    });
+  }
+  
+  // Show warning if credentials are still placeholders after page load
+  window.addEventListener('DOMContentLoaded', () => {
+    if (SUPABASE_URL === "https://your-project.supabase.co" || SUPABASE_ANON_KEY === "your-anon-key-here") {
+      const warnBox = document.createElement('div');
+      warnBox.style.backgroundColor = "#ffedd5";
+      warnBox.style.color = "#9a3412";
+      warnBox.style.padding = "10px";
+      warnBox.style.borderRadius = "16px";
+      warnBox.style.fontSize = "0.75rem";
+      warnBox.style.marginTop = "10px";
+      warnBox.style.textAlign = "center";
+      warnBox.innerHTML = "⚠️ <strong>Replace Supabase credentials</strong><br> Edit <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> in the script tag with your project keys from <a href='https://supabase.com/dashboard' target='_blank' style='color:#2563eb;'>Supabase Dashboard</a> → API settings.";
+      const infoDiv = document.querySelector('.info-note');
+      if (infoDiv) infoDiv.insertAdjacentElement('afterend', warnBox);
+    } else {
+      // optional: test connection lightweight
+      console.log("Supabase keys provided, ready to sign up.");
+    }
+  });
+</script>
+
+<!-- Additional note: To fully store credentials, Supabase automatically stores hashed password & email in auth.users table. -->
+<!-- The user also must ensure that "Enable Email confirmations" can be toggled in Auth settings as needed. -->
+</body>
+</html>
