@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Supabase Sign-Up · Live User List</title>
+  <!-- Supabase JS library v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', 'Inter', 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f6f9fc 0%, #edf2f7 100%);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* main card layout */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(2px);
+      border-radius: 2rem;
+      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.02);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      transition: all 0.2s ease;
+    }
+
+    .header {
+      background: #1e293b;
+      padding: 1.8rem 2rem;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 1.9rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #FFFFFF, #cbd5e6);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      display: inline-block;
+    }
+
+    .header p {
+      color: #94a3b8;
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .badge {
+      background: #0f172ab3;
+      display: inline-block;
+      padding: 0.2rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      margin-left: 1rem;
+      vertical-align: middle;
+      font-weight: normal;
+      color: #cbd5e1;
+    }
+
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 0;
+    }
+
+    @media (max-width: 780px) {
+      .two-col-grid {
+        grid-template-columns: 1fr;
+      }
+      body {
+        padding: 1rem;
+      }
+    }
+
+    /* signup form area */
+    .form-section {
+      padding: 2rem 2rem 2rem 2rem;
+      background: #ffffffd9;
+      border-right: 1px solid #e9eef3;
+    }
+
+    .form-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+
+    .form-sub {
+      color: #475569;
+      font-size: 0.85rem;
+      margin-bottom: 1.8rem;
+      border-left: 3px solid #3b82f6;
+      padding-left: 0.75rem;
+    }
+
+    .input-group {
+      margin-bottom: 1.4rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      font-size: 0.85rem;
+      margin-bottom: 0.4rem;
+      color: #1e293b;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border-radius: 1rem;
+      border: 1.5px solid #e2e8f0;
+      background: #fefefe;
+      font-size: 0.95rem;
+      transition: 0.2s;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+    }
+
+    button {
+      background: #0f172a;
+      color: white;
+      border: none;
+      padding: 0.85rem 1.6rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    button:hover {
+      background: #1e293b;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px -5px rgba(0,0,0,0.15);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .msg-area {
+      margin-top: 1.2rem;
+      padding: 0.7rem;
+      border-radius: 1rem;
+      font-size: 0.85rem;
+      background: #f8fafc;
+      display: none;
+    }
+
+    .msg-area.show {
+      display: block;
+    }
+
+    .msg-success {
+      background: #e6f7ec;
+      color: #0e5e2e;
+      border-left: 4px solid #22c55e;
+    }
+
+    .msg-error {
+      background: #fee9e6;
+      color: #b91c1c;
+      border-left: 4px solid #ef4444;
+    }
+
+    /* user list section */
+    .list-section {
+      padding: 2rem;
+      background: #fefefe;
+    }
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px dashed #e2e8f0;
+      padding-bottom: 0.75rem;
+    }
+
+    .list-header h2 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .count-badge {
+      background: #eef2ff;
+      padding: 0.25rem 0.7rem;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #1e40af;
+    }
+
+    .users-table-wrapper {
+      overflow-x: auto;
+      border-radius: 1.2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.9rem 0.5rem 0.7rem 0;
+      font-weight: 600;
+      color: #334155;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    td {
+      padding: 0.9rem 0.5rem 0.9rem 0;
+      border-bottom: 1px solid #f0f2f5;
+      color: #1e293b;
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .user-email {
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #2563eb;
+      word-break: break-all;
+    }
+
+    .date-meta {
+      font-size: 0.7rem;
+      color: #5b6e8c;
+      white-space: nowrap;
+    }
+
+    .empty-row td {
+      text-align: center;
+      padding: 2rem;
+      color: #6c86a3;
+      font-style: italic;
+    }
+
+    .loader-inline {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.6s linear infinite;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    footer {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.7rem;
+      color: #5f6c84;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="glass-panel">
+    <div class="header">
+      <h1>✦ Supabase Sign‑Up <span class="badge">live data + store</span></h1>
+      <p>Register with your name & email → instantly stored in Supabase → everyone appears below</p>
+    </div>
+    <div class="two-col-grid">
+      <!-- SIGNUP FORM COLUMN -->
+      <div class="form-section">
+        <div class="form-title">Create account</div>
+        <div class="form-sub">Join the list & see all sign-ups update in real time</div>
+        <form id="signupForm">
+          <div class="input-group">
+            <label>Full name</label>
+            <input type="text" id="fullName" placeholder="e.g. Alex Rivera" required autocomplete="name">
+          </div>
+          <div class="input-group">
+            <label>Email address</label>
+            <input type="email" id="emailInput" placeholder="alex@example.com" required autocomplete="email">
+          </div>
+          <button type="submit" id="submitBtn">
+            <span>✨ Sign up</span>
+          </button>
+          <div id="formMessage" class="msg-area"></div>
+        </form>
+        <div style="margin-top: 1.2rem; font-size: 0.7rem; color: #5f6c84; text-align: center;">
+          ⚡ Data stored securely in Supabase · Auto-refreshes after each sign-up
+        </div>
+      </div>
+
+      <!-- DISPLAY STORED USERS COLUMN -->
+      <div class="list-section">
+        <div class="list-header">
+          <h2>📋 Registered members</h2>
+          <span class="count-badge" id="userCount">0 total</span>
+        </div>
+        <div class="users-table-wrapper">
+          <table id="usersTable">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Signed up on</th></tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr class="empty-row"><td colspan="3">⏳ Loading users from Supabase...</td></tr>
+            </tbody>
+           </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    ✅ Connected to your Supabase project. Table `users` required: id (UUID), name (TEXT), email (TEXT UNIQUE), created_at (TIMESTAMPTZ).
+    <br>⚠️ If table missing or RLS not set, see console instructions or create table via SQL editor.
+  </footer>
+</div>
+
+<script>
+  // ======================== YOUR SUPABASE CREDENTIALS (PROVIDED) ========================
+  const SUPABASE_URL = "https://uvipqdfadceasjfytbgj.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXBxZGZhZGNlYXNqZnl0YmdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTM5NTQsImV4cCI6MjA5NDM2OTk1NH0.rPoCC86NvgKGu-4VPrt_sGXa3RgrKcAiaG23NQcgmAU";
+  
+  // ======================== INIT SUPABASE CLIENT ========================
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  // DOM elements
+  const form = document.getElementById('signupForm');
+  const nameInput = document.getElementById('fullName');
+  const emailInput = document.getElementById('emailInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const formMessageDiv = document.getElementById('formMessage');
+  const usersTableBody = document.getElementById('usersTableBody');
+  const userCountSpan = document.getElementById('userCount');
+
+  // Helper: show temporary form message (success or error)
+  function showFormMessage(text, isError = false) {
+    formMessageDiv.textContent = text;
+    formMessageDiv.classList.add('show');
+    if (isError) {
+      formMessageDiv.classList.add('msg-error');
+      formMessageDiv.classList.remove('msg-success');
+    } else {
+      formMessageDiv.classList.add('msg-success');
+      formMessageDiv.classList.remove('msg-error');
+    }
+    // auto hide after 4 seconds
+    setTimeout(() => {
+      if (formMessageDiv.classList.contains('show')) {
+        formMessageDiv.classList.remove('show');
+      }
+    }, 4000);
+  }
+
+  // Show loading state on button
+  function setButtonLoading(loading) {
+    if (loading) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="loader-inline"></span> Signing up...';
+    } else {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>✨ Sign up</span>';
+    }
+  }
+
+  // Fetch all users from Supabase and render them in the table
+  async function fetchAndDisplayUsers() {
+    try {
+      // select all fields, order by most recent signup first
+      const { data, error } = await supabaseClient
+        .from('users')
+        .select('id, name, email, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Fetch error:', error);
+        let errorMsg = error.message;
+        if (errorMsg.includes('relation "users" does not exist')) {
+          usersTableBody.innerHTML = `<tr class="empty-row"><td colspan="3">📌 Table 'users' missing. Create it in Supabase SQL editor (see console).</td></tr>`;
+        } else {
+          usersTableBody.innerHTML = `<tr class="empty-row"><td colspan="3">⚠️ Failed to load users: ${error.message}</td></tr>`;
+        }
+        userCountSpan.textContent = '0 total';
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        usersTableBody.innerHTML = `<tr class="empty-row"><td colspan="3">📭 No sign-ups yet. Be the first one!</td></tr>`;
+        userCountSpan.textContent = '0 total';
+        return;
+      }
+
+      // render rows
+      let rowsHtml = '';
+      data.forEach(user => {
+        const userName = escapeHtml(user.name || 'Anonymous');
+        const userEmail = escapeHtml(user.email || 'no-email');
+        let formattedDate = 'Just now';
+        if (user.created_at) {
+          try {
+            const dateObj = new Date(user.created_at);
+            formattedDate = dateObj.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) 
+              + ' ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
+          } catch(e) { formattedDate = user.created_at.substring(0,10); }
+        }
+        rowsHtml += `
+          <tr>
+            <td style="font-weight:500;">${userName}</td>
+            <td class="user-email">${userEmail}</td>
+            <td class="date-meta">${formattedDate}</td>
+          </tr>
+        `;
+      });
+      usersTableBody.innerHTML = rowsHtml;
+      userCountSpan.textContent = `${data.length} ${data.length === 1 ? 'member' : 'members'}`;
+    } catch (err) {
+      console.error(err);
+      usersTableBody.innerHTML = `<tr class="empty-row"><td colspan="3">❗ Network error: ${err.message}</td></tr>`;
+      userCountSpan.textContent = 'error';
+    }
+  }
+
+  // Simple XSS protection
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+      return c;
+    });
+  }
+
+  // Insert new user into Supabase 'users' table
+  async function addUserToSupabase(name, email) {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedName || !trimmedEmail) {
+      throw new Error('Name and email cannot be empty');
+    }
+    // simple email format check
+    const emailRegex = /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      throw new Error('Please enter a valid email address');
+    }
+
+    const { data, error } = await supabaseClient
+      .from('users')
+      .insert([
+        { 
+          name: trimmedName, 
+          email: trimmedEmail,
+          created_at: new Date().toISOString()
+        }
+      ])
+      .select();
+
+    if (error) {
+      if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('unique constraint')) {
+        throw new Error('This email is already registered. Try a different one.');
+      }
+      throw new Error(error.message || 'Failed to store sign-up data');
+    }
+    return data;
+  }
+
+  // On form submit: store, then refresh list, show success & clear inputs
+  async function onSignUpSubmit(event) {
+    event.preventDefault();
+    
+    formMessageDiv.classList.remove('show', 'msg-success', 'msg-error');
+    
+    const name = nameInput.value;
+    const email = emailInput.value;
+    
+    if (!name.trim()) {
+      showFormMessage('❌ Please enter your full name', true);
+      nameInput.focus();
+      return;
+    }
+    if (!email.trim()) {
+      showFormMessage('❌ Please enter an email address', true);
+      emailInput.focus();
+      return;
+    }
+    
+    setButtonLoading(true);
+    
+    try {
+      await addUserToSupabase(name, email);
+      showFormMessage(`🎉 Welcome ${name.trim()}! Data stored and list updated.`, false);
+      nameInput.value = '';
+      emailInput.value = '';
+      nameInput.focus();
+      
+      // 🔁 CRITICAL: fetch & display updated user list (showing stored data after each sign-up)
+      await fetchAndDisplayUsers();
+      
+    } catch (err) {
+      console.error('Signup error:', err);
+      let errorText = err.message || 'Something went wrong. Check console or Supabase setup.';
+      if (errorText.includes('relation "users" does not exist')) {
+        errorText = "❌ Table 'users' doesn't exist. Please create it in Supabase SQL editor (see console instructions).";
+      } else if (errorText.includes("permission denied") || errorText.includes("row-level security")) {
+        errorText = "⚠️ RLS policy missing or invalid. Enable public insert/select for 'users' table.";
+      }
+      showFormMessage(errorText, true);
+    } finally {
+      setButtonLoading(false);
+    }
+  }
+
+  // Show SQL setup hints in console and handle potential table missing gracefully
+  function showSetupHelp() {
+    console.log("%c🔧 SUPABASE SETUP INSTRUCTIONS (if table missing):", "background:#0f172a; color:white; font-size:12px; padding:4px; border-radius:6px");
+    console.log(`
+    CREATE TABLE users (
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
+    
+    -- Enable RLS and allow public access (for demo)
+    ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY "Allow public SELECT" ON users FOR SELECT USING (true);
+    CREATE POLICY "Allow public INSERT" ON users FOR INSERT WITH CHECK (true);
+    `);
+  }
+
+  // Initial load: fetch users if table exists, otherwise show friendly message
+  async function initializePage() {
+    // attempt to fetch users, but if error due to missing table, we show proper message
+    try {
+      await fetchAndDisplayUsers();
+    } catch (err) {
+      // Already handled inside fetchAndDisplayUsers, but just in case
+      console.warn("initialization fetch error", err);
+    }
+    showSetupHelp();
+  }
+  
+  // attach event listener and start
+  form.addEventListener('submit', onSignUpSubmit);
+  initializePage();
+</script>
+</body>
+</html>
